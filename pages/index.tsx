@@ -1,19 +1,48 @@
+import {
+  Button,
+  Checkbox,
+  FormControlLabel,
+  IconButton,
+  Link,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  TextField,
+} from '@mui/material'
+import { DesktopDatePicker } from '@mui/x-date-pickers'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
-import { useRouter } from 'next/router'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Expense } from '../api/expense/types'
+import { useCreateExpense } from '../hooks/useCreateExpense'
 import { useFindExpenses } from '../hooks/useFindExpenses'
-import { useGetUser } from '../hooks/useGetUser'
+import { useGetCurrentUser } from '../hooks/useGetCurrentUser'
 import styles from '../styles/Home.module.css'
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'
+import { useDeleteExpense } from '../hooks/useDeleteExpense'
 
 const Home: NextPage = () => {
-  const { query } = useRouter()
-  const account_id =
-    typeof query.account_id === 'string' ? query.account_id : undefined
-  const { data: user } = useGetUser(account_id)
-  const { data: expenses } = useFindExpenses({
-    account_id,
+  const [dateValue, setDateValue] = useState<Date | null>(new Date())
+  const { register, handleSubmit, reset } = useForm<Omit<Expense, 'id'>>()
+  const { data: currentUser } = useGetCurrentUser()
+  const { data: dailyExpenses } = useFindExpenses({
+    account_id: currentUser?.id,
+    transaction_date: dateValue?.toDateString(),
   })
+  const deleteExpense = useDeleteExpense()
+
+  const createExpense = useCreateExpense({
+    onSettled: () => {
+      reset()
+    },
+  })
+
+  const dailyExpensesTotal = dailyExpenses
+    ? dailyExpenses.reduce((acc, { amount }) => acc + amount, 0) / 100
+    : 0
 
   return (
     <div className={styles.container}>
@@ -24,32 +53,105 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to{' '}
-          <a href="https://nextjs.org">Next.js! {user ? user.email : ''}</a>
-        </h1>
-
-        {expenses && (
-          <ul>
-            {expenses.map((expense) => (
-              <li key={expense.id}>{expense.name}</li>
-            ))}
-          </ul>
+        <header>
+          {currentUser ? (
+            <Image
+              alt={`${currentUser.first_name} ${currentUser.last_name}`}
+              src={currentUser.avatar}
+              width={40}
+              height={40}
+            />
+          ) : (
+            <Link
+              href={`${process.env.NEXT_PUBLIC_API_HOST}/google?state=${process.env.NEXT_PUBLIC_HOST}`}
+            >
+              Login
+            </Link>
+          )}
+        </header>
+        <DesktopDatePicker
+          label="Date"
+          inputFormat="MM/dd/yyyy"
+          value={dateValue}
+          onChange={setDateValue}
+          renderInput={(params) => <TextField {...params} />}
+        />
+        {dailyExpenses && (
+          <div>
+            <h1>
+              Total:{' '}
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+              }).format(dailyExpensesTotal)}
+            </h1>
+            <List>
+              {dailyExpenses.map((expense) => (
+                <ListItem
+                  key={expense.id}
+                  secondaryAction={
+                    <IconButton
+                      onClick={() => {
+                        if (!currentUser) {
+                          return
+                        }
+                        deleteExpense.mutate({
+                          account_id: currentUser.id,
+                          id: expense.id,
+                        })
+                      }}
+                      edge="end"
+                      aria-label="delete"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  }
+                >
+                  <ListItemIcon>
+                    <EditIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`${expense.name} - ${new Intl.NumberFormat(
+                      'en-US',
+                      {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 2,
+                      }
+                    ).format(expense.amount / 100)}`}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </div>
         )}
-      </main>
+        <form
+          onSubmit={handleSubmit(({ name, amount, recurring }) => {
+            if (!currentUser?.id || !dateValue) {
+              return
+            }
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            createExpense.mutate({
+              name,
+              amount,
+              account_id: currentUser.id,
+              transaction_date: dateValue.toISOString(),
+              recurring,
+            })
+          })}
         >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+          <TextField label="Name" {...register('name')} />
+          <TextField label="Amount" {...register('amount')} type="number" />
+          <FormControlLabel
+            control={<Checkbox {...register('recurring')} />}
+            label="Recurring?"
+          />
+          <Button variant="outlined" type="submit">
+            Submit
+          </Button>
+        </form>
+      </main>
     </div>
   )
 }
