@@ -4,7 +4,7 @@ import { Expense } from '../api/expense/types'
 
 export const useFindExpenses = (
   { account_id, ...rest }: Partial<FindExpensesParams>,
-  options: Omit<
+  options?: Omit<
     UseQueryOptions<
       Expense[] | undefined,
       unknown,
