@@ -14,7 +14,7 @@ const LoginPage: NextPage = () => {
 
       <main className={styles.main}>
         <Link
-          href={`${process.env.NEXT_PUBLIC_API_HOST}/google?state=${process.env.NEXT_PUBLIC_HOST}`}
+          href={`${process.env.NEXT_PUBLIC_API_HOST}/google?state=${process.env.NEXT_PUBLIC_VERCEL_URL}`}
         >
           Login
         </Link>
