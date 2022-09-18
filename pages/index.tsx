@@ -1,9 +1,9 @@
 import {
   Button,
+  ButtonBase,
   Checkbox,
   FormControlLabel,
   IconButton,
-  Link,
   List,
   ListItem,
   ListItemIcon,
@@ -14,24 +14,43 @@ import { DesktopDatePicker } from '@mui/x-date-pickers'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Expense } from '../api/expense/types'
 import { useCreateExpense } from '../hooks/useCreateExpense'
 import { useFindExpenses } from '../hooks/useFindExpenses'
 import { useGetCurrentUser } from '../hooks/useGetCurrentUser'
 import styles from '../styles/Home.module.css'
-import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'
+import {
+  AttachMoney,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+} from '@mui/icons-material'
 import { useDeleteExpense } from '../hooks/useDeleteExpense'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
+import { addErrorEventListener } from '../api/utils'
+import { useLogout } from '../hooks/useLogout'
 
 const Home: NextPage = () => {
-  const [dateValue, setDateValue] = useState<Date | null>(new Date())
+  const { push, query } = useRouter()
+  const queryDate = typeof query.date === 'string' ? query.date : undefined
   const { register, handleSubmit, reset } = useForm<Omit<Expense, 'id'>>()
   const { data: currentUser } = useGetCurrentUser()
   const { data: dailyExpenses } = useFindExpenses({
     account_id: currentUser?.id,
-    transaction_date: dateValue?.toDateString(),
+    transaction_date: queryDate,
   })
+
+  useEffect(() => {
+    const unsubscribe = addErrorEventListener((error) => {
+      if (error.status === 401) {
+        push('/login')
+      }
+    })
+
+    return () => unsubscribe()
+  }, [push])
+
   const deleteExpense = useDeleteExpense()
 
   const createExpense = useCreateExpense({
@@ -39,6 +58,18 @@ const Home: NextPage = () => {
       reset()
     },
   })
+
+  useEffect(() => {
+    if (!queryDate) {
+      push({
+        query: {
+          date: new Date().toDateString(),
+        },
+      })
+    }
+  }, [push, queryDate])
+
+  const logout = useLogout()
 
   const dailyExpensesTotal = dailyExpenses
     ? dailyExpenses.reduce((acc, { amount }) => acc + amount, 0) / 100
@@ -54,28 +85,40 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <header>
-          {currentUser ? (
-            <Image
-              alt={`${currentUser.first_name} ${currentUser.last_name}`}
-              src={currentUser.avatar}
-              width={40}
-              height={40}
-            />
-          ) : (
-            <Link
-              href={`${process.env.NEXT_PUBLIC_API_HOST}/google?state=${process.env.NEXT_PUBLIC_HOST}`}
+          {currentUser && (
+            <ButtonBase
+              onClick={async () => {
+                await logout.mutate()
+                push('/login')
+              }}
             >
-              Login
-            </Link>
+              <Image
+                alt={`${currentUser.first_name} ${currentUser.last_name}`}
+                src={currentUser.avatar}
+                width={40}
+                height={40}
+                style={{ display: 'block' }}
+              />
+            </ButtonBase>
           )}
         </header>
-        <DesktopDatePicker
-          label="Date"
-          inputFormat="MM/dd/yyyy"
-          value={dateValue}
-          onChange={setDateValue}
-          renderInput={(params) => <TextField {...params} />}
-        />
+        {!!queryDate && (
+          <DesktopDatePicker
+            label="Date"
+            inputFormat="MM/dd/yyyy"
+            value={new Date(queryDate)}
+            onChange={(date) => {
+              if (date) {
+                push({
+                  query: {
+                    date: date.toDateString(),
+                  },
+                })
+              }
+            }}
+            renderInput={(params) => <TextField {...params} />}
+          />
+        )}
         {dailyExpenses && (
           <div>
             <h1>
@@ -128,7 +171,7 @@ const Home: NextPage = () => {
         )}
         <form
           onSubmit={handleSubmit(({ name, amount, recurring }) => {
-            if (!currentUser?.id || !dateValue) {
+            if (!currentUser?.id || !queryDate) {
               return
             }
 
@@ -136,13 +179,23 @@ const Home: NextPage = () => {
               name,
               amount,
               account_id: currentUser.id,
-              transaction_date: dateValue.toISOString(),
+              transaction_date: new Date(queryDate).toISOString(),
               recurring,
             })
           })}
         >
           <TextField label="Name" {...register('name')} />
-          <TextField label="Amount" {...register('amount')} type="number" />
+          <TextField
+            label="Amount"
+            {...register('amount')}
+            type="number"
+            inputProps={{
+              step: '0.01',
+            }}
+            InputProps={{
+              startAdornment: <AttachMoney />,
+            }}
+          />
           <FormControlLabel
             control={<Checkbox {...register('recurring')} />}
             label="Recurring?"
