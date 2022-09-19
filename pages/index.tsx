@@ -36,13 +36,19 @@ const Home: NextPage = () => {
   const queryDate = typeof query.date === 'string' ? query.date : undefined
   const { register, handleSubmit, reset } = useForm<Omit<Expense, 'id'>>()
   const { data: currentUser } = useGetCurrentUser()
-  const { data: dailyExpenses } = useFindExpenses({
-    account_id: currentUser?.id,
-    transaction_date: queryDate,
-  })
+  const { data: dailyExpenses } = useFindExpenses(
+    {
+      account_id: currentUser?.id,
+      transaction_date: queryDate,
+    },
+    {
+      enabled: !!(currentUser?.id && queryDate),
+    }
+  )
 
   useEffect(() => {
     const unsubscribe = addErrorEventListener((error) => {
+      console.log('error :>> ', error)
       if (error.status === 401) {
         push('/login')
       }
