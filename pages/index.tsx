@@ -9,6 +9,7 @@ import {
   ListItemIcon,
   ListItemText,
   TextField,
+  Typography,
 } from '@mui/material'
 import { DesktopDatePicker } from '@mui/x-date-pickers'
 import type { NextPage } from 'next'
@@ -33,18 +34,50 @@ import { useLogout } from '../hooks/useLogout'
 
 const Home: NextPage = () => {
   const { push, query } = useRouter()
-  const queryDate = typeof query.date === 'string' ? query.date : undefined
+  const queryDateString =
+    typeof query.date === 'string' ? query.date : undefined
+  const queryDate = queryDateString
+    ? new Date(queryDateString.replaceAll('+', ' '))
+    : undefined
+
   const { register, handleSubmit, reset } = useForm<Omit<Expense, 'id'>>()
   const { data: currentUser } = useGetCurrentUser()
   const { data: dailyExpenses } = useFindExpenses(
     {
       account_id: currentUser?.id,
-      transaction_date: queryDate,
+      transaction_date: queryDateString,
+    },
+    {
+      enabled: !!(currentUser?.id && queryDateString),
+    }
+  )
+
+  const transaction_date_start = queryDate
+    ? new Date(queryDate.getFullYear(), queryDate.getMonth(), 1).toDateString()
+    : undefined
+
+  const transaction_date_end = queryDate
+    ? new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth() + 1,
+        0
+      ).toDateString()
+    : undefined
+
+  const { data: monthlyExpenses } = useFindExpenses(
+    {
+      account_id: currentUser?.id,
+      transaction_date_end,
+      transaction_date_start,
     },
     {
       enabled: !!(currentUser?.id && queryDate),
     }
   )
+
+  const monthlyExpensesTotal = monthlyExpenses
+    ? monthlyExpenses.reduce((acc, { amount }) => acc + amount, 0) / 100
+    : 0
 
   useEffect(() => {
     const unsubscribe = addErrorEventListener((error) => {
@@ -66,14 +99,14 @@ const Home: NextPage = () => {
   })
 
   useEffect(() => {
-    if (!queryDate) {
+    if (!queryDateString) {
       push({
         query: {
           date: new Date().toDateString(),
         },
       })
     }
-  }, [push, queryDate])
+  }, [push, queryDateString])
 
   const logout = useLogout()
 
@@ -107,17 +140,25 @@ const Home: NextPage = () => {
               />
             </ButtonBase>
           )}
+          <Typography component="h1">
+            Monthly total:{' '}
+            {new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              minimumFractionDigits: 2,
+            }).format(monthlyExpensesTotal)}
+          </Typography>
         </header>
-        {!!queryDate && (
+        {!!queryDateString && (
           <DesktopDatePicker
             label="Date"
             inputFormat="MM/dd/yyyy"
-            value={new Date(queryDate)}
-            onChange={(date) => {
-              if (date) {
+            value={new Date(queryDateString)}
+            onChange={(selectedDate) => {
+              if (selectedDate) {
                 push({
                   query: {
-                    date: date.toDateString(),
+                    date: selectedDate.toDateString(),
                   },
                 })
               }
@@ -127,14 +168,14 @@ const Home: NextPage = () => {
         )}
         {dailyExpenses && (
           <div>
-            <h1>
+            <Typography component="h1">
               Total:{' '}
               {new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',
                 minimumFractionDigits: 2,
               }).format(dailyExpensesTotal)}
-            </h1>
+            </Typography>
             <List>
               {dailyExpenses.map((expense) => (
                 <ListItem
@@ -177,7 +218,7 @@ const Home: NextPage = () => {
         )}
         <form
           onSubmit={handleSubmit(({ name, amount, recurring }) => {
-            if (!currentUser?.id || !queryDate) {
+            if (!currentUser?.id || !queryDateString) {
               return
             }
 
@@ -185,7 +226,7 @@ const Home: NextPage = () => {
               name,
               amount,
               account_id: currentUser.id,
-              transaction_date: new Date(queryDate).toISOString(),
+              transaction_date: new Date(queryDateString).toISOString(),
               recurring,
             })
           })}
