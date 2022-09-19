@@ -4,10 +4,7 @@ import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 
 const LoginPage: NextPage = () => {
-  const redirectUrl =
-    process.env.BASE_URL || typeof window !== 'undefined'
-      ? window.location.origin
-      : ''
+  const redirectUrl = process.env.NEXT_PUBLIC_BASE_URL
 
   return (
     <div className={styles.container}>
