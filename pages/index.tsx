@@ -69,15 +69,30 @@ const Home: NextPage = () => {
       account_id: currentUser?.id,
       transaction_date_end,
       transaction_date_start,
+      recurring: false,
     },
     {
       enabled: !!(currentUser?.id && queryDate),
     }
   )
 
-  const monthlyExpensesTotal = monthlyExpenses
-    ? monthlyExpenses.reduce((acc, { amount }) => acc + amount, 0) / 100
-    : 0
+  const { data: recurringExpenses } = useFindExpenses(
+    {
+      account_id: currentUser?.id,
+      recurring: true,
+    },
+    {
+      enabled: !!(currentUser?.id && queryDate),
+    }
+  )
+
+  const monthlyExpensesTotal =
+    monthlyExpenses && recurringExpenses
+      ? [...recurringExpenses, ...monthlyExpenses].reduce(
+          (acc, { amount }) => acc + amount,
+          0
+        ) / 100
+      : 0
 
   useEffect(() => {
     const unsubscribe = addErrorEventListener((error) => {
@@ -169,7 +184,7 @@ const Home: NextPage = () => {
         {dailyExpenses && (
           <div>
             <Typography component="h1">
-              Total:{' '}
+              Daily Total:{' '}
               {new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',
