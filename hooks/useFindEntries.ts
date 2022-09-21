@@ -1,14 +1,14 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
-import { findExpenses, FindExpensesParams } from '../api/expense/findExpenses'
-import { Expense } from '../api/expense/types'
+import { findEntries, FindEntriesParams } from '../api/entry/findEntry'
+import { Entry } from '../api/entry/types'
 
-export const useFindExpenses = (
-  { account_id, ...rest }: Partial<FindExpensesParams>,
+export const useFindEntries = (
+  { account_id, ...rest }: Partial<FindEntriesParams>,
   options?: Omit<
     UseQueryOptions<
-      Expense[] | undefined,
+      Entry[] | undefined,
       unknown,
-      Expense[] | undefined,
+      Entry[] | undefined,
       (
         | string
         | {
@@ -27,8 +27,8 @@ export const useFindExpenses = (
   }
 ) => {
   return useQuery(
-    ['expenses', { account_id, ...rest }],
-    () => (account_id ? findExpenses({ account_id, ...rest }) : undefined),
+    ['entries', { account_id, ...rest }],
+    () => (account_id ? findEntries({ account_id, ...rest }) : undefined),
     options
   )
 }

@@ -16,9 +16,9 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
-import { Expense } from '../api/expense/types'
-import { useCreateExpense } from '../hooks/useCreateExpense'
-import { useFindExpenses } from '../hooks/useFindExpenses'
+import { Entry } from '../api/entry/types'
+import { useCreateEntry } from '../hooks/useCreateEntry'
+import { useFindEntries } from '../hooks/useFindEntries'
 import { useGetCurrentUser } from '../hooks/useGetCurrentUser'
 import styles from '../styles/Home.module.css'
 import {
@@ -26,7 +26,7 @@ import {
   Delete as DeleteIcon,
   Edit as EditIcon,
 } from '@mui/icons-material'
-import { useDeleteExpense } from '../hooks/useDeleteExpense'
+import { useDeleteEntry } from '../hooks/useDeleteEntry'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { addErrorEventListener } from '../api/utils'
@@ -40,9 +40,9 @@ const Home: NextPage = () => {
     ? new Date(queryDateString.replaceAll('+', ' '))
     : undefined
 
-  const { register, handleSubmit, reset } = useForm<Omit<Expense, 'id'>>()
+  const { register, handleSubmit, reset } = useForm<Omit<Entry, 'id'>>()
   const { data: currentUser } = useGetCurrentUser()
-  const { data: dailyExpenses } = useFindExpenses(
+  const { data: dailyEntries } = useFindEntries(
     {
       account_id: currentUser?.id,
       transaction_date: queryDateString,
@@ -64,7 +64,7 @@ const Home: NextPage = () => {
       ).toDateString()
     : undefined
 
-  const { data: monthlyExpenses } = useFindExpenses(
+  const { data: monthlyEntries } = useFindEntries(
     {
       account_id: currentUser?.id,
       transaction_date_end,
@@ -76,7 +76,7 @@ const Home: NextPage = () => {
     }
   )
 
-  const { data: recurringExpenses } = useFindExpenses(
+  const { data: recurringEntries } = useFindEntries(
     {
       account_id: currentUser?.id,
       recurring: true,
@@ -86,9 +86,9 @@ const Home: NextPage = () => {
     }
   )
 
-  const monthlyExpensesTotal =
-    monthlyExpenses && recurringExpenses
-      ? [...recurringExpenses, ...monthlyExpenses].reduce(
+  const monthlyEntriesTotal =
+    monthlyEntries && recurringEntries
+      ? [...recurringEntries, ...monthlyEntries].reduce(
           (acc, { amount }) => acc + amount,
           0
         ) / 100
@@ -105,9 +105,9 @@ const Home: NextPage = () => {
     return () => unsubscribe()
   }, [push])
 
-  const deleteExpense = useDeleteExpense()
+  const deleteEntry = useDeleteEntry()
 
-  const createExpense = useCreateExpense({
+  const createEntry = useCreateEntry({
     onSettled: () => {
       reset()
     },
@@ -125,8 +125,8 @@ const Home: NextPage = () => {
 
   const logout = useLogout()
 
-  const dailyExpensesTotal = dailyExpenses
-    ? dailyExpenses.reduce((acc, { amount }) => acc + amount, 0) / 100
+  const dailyEntriesTotal = dailyEntries
+    ? dailyEntries.reduce((acc, { amount }) => acc + amount, 0) / 100
     : 0
 
   return (
@@ -160,7 +160,7 @@ const Home: NextPage = () => {
               style: 'currency',
               currency: 'USD',
               minimumFractionDigits: 2,
-            }).format(monthlyExpensesTotal)}
+            }).format(monthlyEntriesTotal)}
           </Typography>
         </header>
         {!!queryDateString && (
@@ -180,7 +180,7 @@ const Home: NextPage = () => {
             renderInput={(params) => <TextField {...params} />}
           />
         )}
-        {dailyExpenses && (
+        {dailyEntries && (
           <div>
             <Typography component="h1">
               Daily Total:{' '}
@@ -188,21 +188,21 @@ const Home: NextPage = () => {
                 style: 'currency',
                 currency: 'USD',
                 minimumFractionDigits: 2,
-              }).format(dailyExpensesTotal)}
+              }).format(dailyEntriesTotal)}
             </Typography>
             <List>
-              {dailyExpenses.map((expense) => (
+              {dailyEntries.map((entry) => (
                 <ListItem
-                  key={expense.id}
+                  key={entry.id}
                   secondaryAction={
                     <IconButton
                       onClick={() => {
                         if (!currentUser) {
                           return
                         }
-                        deleteExpense.mutate({
+                        deleteEntry.mutate({
                           account_id: currentUser.id,
-                          id: expense.id,
+                          id: entry.id,
                         })
                       }}
                       edge="end"
@@ -216,14 +216,11 @@ const Home: NextPage = () => {
                     <EditIcon />
                   </ListItemIcon>
                   <ListItemText
-                    primary={`${expense.name} - ${new Intl.NumberFormat(
-                      'en-US',
-                      {
-                        style: 'currency',
-                        currency: 'USD',
-                        minimumFractionDigits: 2,
-                      }
-                    ).format(expense.amount / 100)}`}
+                    primary={`${entry.name} - ${new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD',
+                      minimumFractionDigits: 2,
+                    }).format(entry.amount / 100)}`}
                   />
                 </ListItem>
               ))}
@@ -236,7 +233,7 @@ const Home: NextPage = () => {
               return
             }
 
-            createExpense.mutate({
+            createEntry.mutate({
               name,
               amount,
               account_id: currentUser.id,
