@@ -5,4 +5,5 @@ export interface Entry {
   transaction_date: string
   amount: number
   recurring: boolean
+  type: 'expense' | 'income' | 'savings'
 }

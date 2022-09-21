@@ -1,102 +1,22 @@
-import {
-  Button,
-  ButtonBase,
-  Checkbox,
-  FormControlLabel,
-  IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { TextField } from '@mui/material'
 import { DesktopDatePicker } from '@mui/x-date-pickers'
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
-import { useForm } from 'react-hook-form'
-import { Entry } from '../api/entry/types'
-import { useCreateEntry } from '../hooks/useCreateEntry'
-import { useFindEntries } from '../hooks/useFindEntries'
-import { useGetCurrentUser } from '../hooks/useGetCurrentUser'
 import styles from '../styles/Home.module.css'
-import {
-  AttachMoney,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-} from '@mui/icons-material'
-import { useDeleteEntry } from '../hooks/useDeleteEntry'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { addErrorEventListener } from '../api/utils'
-import { useLogout } from '../hooks/useLogout'
+import { EntryForm } from '../components/EntryForm'
+import { DailyEntries } from '../components/DailyEntries'
+import { Header } from '../components/Header'
 
 const Home: NextPage = () => {
   const { push, query } = useRouter()
   const queryDateString =
     typeof query.date === 'string' ? query.date : undefined
-  const queryDate = queryDateString
-    ? new Date(queryDateString.replaceAll('+', ' '))
-    : undefined
-
-  const { register, handleSubmit, reset } = useForm<Omit<Entry, 'id'>>()
-  const { data: currentUser } = useGetCurrentUser()
-  const { data: dailyEntries } = useFindEntries(
-    {
-      account_id: currentUser?.id,
-      transaction_date: queryDateString,
-    },
-    {
-      enabled: !!(currentUser?.id && queryDateString),
-    }
-  )
-
-  const transaction_date_start = queryDate
-    ? new Date(queryDate.getFullYear(), queryDate.getMonth(), 1).toDateString()
-    : undefined
-
-  const transaction_date_end = queryDate
-    ? new Date(
-        queryDate.getFullYear(),
-        queryDate.getMonth() + 1,
-        0
-      ).toDateString()
-    : undefined
-
-  const { data: monthlyEntries } = useFindEntries(
-    {
-      account_id: currentUser?.id,
-      transaction_date_end,
-      transaction_date_start,
-      recurring: false,
-    },
-    {
-      enabled: !!(currentUser?.id && queryDate),
-    }
-  )
-
-  const { data: recurringEntries } = useFindEntries(
-    {
-      account_id: currentUser?.id,
-      recurring: true,
-    },
-    {
-      enabled: !!(currentUser?.id && queryDate),
-    }
-  )
-
-  const monthlyEntriesTotal =
-    monthlyEntries && recurringEntries
-      ? [...recurringEntries, ...monthlyEntries].reduce(
-          (acc, { amount }) => acc + amount,
-          0
-        ) / 100
-      : 0
 
   useEffect(() => {
     const unsubscribe = addErrorEventListener((error) => {
-      console.log('error :>> ', error)
       if (error.status === 401) {
         push('/login')
       }
@@ -104,14 +24,6 @@ const Home: NextPage = () => {
 
     return () => unsubscribe()
   }, [push])
-
-  const deleteEntry = useDeleteEntry()
-
-  const createEntry = useCreateEntry({
-    onSettled: () => {
-      reset()
-    },
-  })
 
   useEffect(() => {
     if (!queryDateString) {
@@ -123,12 +35,6 @@ const Home: NextPage = () => {
     }
   }, [push, queryDateString])
 
-  const logout = useLogout()
-
-  const dailyEntriesTotal = dailyEntries
-    ? dailyEntries.reduce((acc, { amount }) => acc + amount, 0) / 100
-    : 0
-
   return (
     <div className={styles.container}>
       <Head>
@@ -138,31 +44,7 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <header>
-          {currentUser && (
-            <ButtonBase
-              onClick={async () => {
-                await logout.mutate()
-                push('/login')
-              }}
-            >
-              <Image
-                alt={`${currentUser.first_name} ${currentUser.last_name}`}
-                src={currentUser.avatar}
-                width={40}
-                height={40}
-              />
-            </ButtonBase>
-          )}
-          <Typography component="h1">
-            Monthly total:{' '}
-            {new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: 'USD',
-              minimumFractionDigits: 2,
-            }).format(monthlyEntriesTotal)}
-          </Typography>
-        </header>
+        <Header />
         {!!queryDateString && (
           <DesktopDatePicker
             label="Date"
@@ -180,88 +62,8 @@ const Home: NextPage = () => {
             renderInput={(params) => <TextField {...params} />}
           />
         )}
-        {dailyEntries && (
-          <div>
-            <Typography component="h1">
-              Daily Total:{' '}
-              {new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 2,
-              }).format(dailyEntriesTotal)}
-            </Typography>
-            <List>
-              {dailyEntries.map((entry) => (
-                <ListItem
-                  key={entry.id}
-                  secondaryAction={
-                    <IconButton
-                      onClick={() => {
-                        if (!currentUser) {
-                          return
-                        }
-                        deleteEntry.mutate({
-                          account_id: currentUser.id,
-                          id: entry.id,
-                        })
-                      }}
-                      edge="end"
-                      aria-label="delete"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  }
-                >
-                  <ListItemIcon>
-                    <EditIcon />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={`${entry.name} - ${new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD',
-                      minimumFractionDigits: 2,
-                    }).format(entry.amount / 100)}`}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </div>
-        )}
-        <form
-          onSubmit={handleSubmit(({ name, amount, recurring }) => {
-            if (!currentUser?.id || !queryDateString) {
-              return
-            }
-
-            createEntry.mutate({
-              name,
-              amount,
-              account_id: currentUser.id,
-              transaction_date: new Date(queryDateString).toISOString(),
-              recurring,
-            })
-          })}
-        >
-          <TextField label="Name" {...register('name')} />
-          <TextField
-            label="Amount"
-            {...register('amount')}
-            type="number"
-            inputProps={{
-              step: '0.01',
-            }}
-            InputProps={{
-              startAdornment: <AttachMoney />,
-            }}
-          />
-          <FormControlLabel
-            control={<Checkbox {...register('recurring')} />}
-            label="Recurring?"
-          />
-          <Button variant="outlined" type="submit">
-            Submit
-          </Button>
-        </form>
+        <DailyEntries />
+        <EntryForm />
       </main>
     </div>
   )
