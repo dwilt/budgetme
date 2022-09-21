@@ -151,7 +151,6 @@ const Home: NextPage = () => {
                 src={currentUser.avatar}
                 width={40}
                 height={40}
-                style={{ display: 'block' }}
               />
             </ButtonBase>
           )}
