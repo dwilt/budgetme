@@ -11,7 +11,7 @@ export default handleAuth({
         },
       })
     } catch (error) {
-      res.status(error.status || 400).end(error.message)
+      // handle error
     }
   },
 })
