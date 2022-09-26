@@ -63,7 +63,9 @@ export const Header = () => {
     <header>
       {!!user?.name && !!user?.picture && (
         <Link href="/api/auth/logout">
-          <Image alt={user.name} src={user.picture} width={40} height={40} />
+          <a>
+            <Image alt={user.name} src={user.picture} width={40} height={40} />
+          </a>
         </Link>
       )}
       <Typography component="h1">
