@@ -8,20 +8,12 @@ import { useEffect } from 'react'
 import { EntryForm } from '../src/components/EntryForm'
 import { DailyEntries } from '../src/components/DailyEntries'
 import { Header } from '../src/components/Header'
-import { useUser } from '@auth0/nextjs-auth0'
+import { withPageAuthRequired } from '@auth0/nextjs-auth0'
 
 const Home: NextPage = () => {
   const { push, query } = useRouter()
   const queryDateString =
     typeof query.date === 'string' ? query.date : undefined
-
-  const { error, isLoading, user } = useUser()
-
-  useEffect(() => {
-    if (!error && !isLoading && !user) {
-      push('/login')
-    }
-  }, [error, isLoading, push, user])
 
   useEffect(() => {
     if (!queryDateString) {
@@ -66,5 +58,9 @@ const Home: NextPage = () => {
     </div>
   )
 }
+
+export const getServerSideProps = withPageAuthRequired({
+  returnTo: '/login',
+})
 
 export default Home
