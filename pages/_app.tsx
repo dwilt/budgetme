@@ -6,8 +6,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { UserProvider } from '@auth0/nextjs-auth0'
 
-console.log('process.env :>> ', process.env)
-
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <UserProvider>
