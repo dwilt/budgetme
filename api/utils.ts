@@ -19,8 +19,8 @@ export const addErrorEventListener = (listener: ApiErrorEventListener) => {
   }
 }
 
-export const apiFetch = (pathname?: string, init?: RequestInit) => {
-  return fetch(`${process.env.NEXT_PUBLIC_API_HOST}${pathname}`, {
+export const apiFetch = (pathname: string, init?: RequestInit) => {
+  return fetch(`/api${pathname}`, {
     headers: {
       ['Content-Type']: 'application/json',
     },
@@ -28,14 +28,6 @@ export const apiFetch = (pathname?: string, init?: RequestInit) => {
   }).then(async (res) => {
     const json = await res.json()
     if (!res.ok) {
-      listeners.forEach((listener) =>
-        listener({
-          status: res.status,
-          statusText: res.statusText,
-          message: json.message || `An unknown error occurred`,
-        })
-      )
-
       throw new Error(json.message)
     }
 

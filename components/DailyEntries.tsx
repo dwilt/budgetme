@@ -7,24 +7,24 @@ import {
   Typography,
 } from '@mui/material'
 import { useFindEntries } from '../hooks/useFindEntries'
-import { useGetCurrentUser } from '../hooks/useGetCurrentUser'
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'
 import { useDeleteEntry } from '../hooks/useDeleteEntry'
 import { useRouter } from 'next/router'
+import { useUser } from '@auth0/nextjs-auth0'
 
 export const DailyEntries = () => {
   const { query } = useRouter()
   const queryDateString =
     typeof query.date === 'string' ? query.date : undefined
 
-  const { data: currentUser } = useGetCurrentUser()
+  const { user } = useUser()
   const { data: dailyEntries } = useFindEntries(
     {
-      account_id: currentUser?.id,
+      account_id: user?.sub,
       transaction_date: queryDateString,
     },
     {
-      enabled: !!(currentUser?.id && queryDateString),
+      enabled: !!(user?.sub && queryDateString),
     }
   )
 
@@ -55,11 +55,11 @@ export const DailyEntries = () => {
             secondaryAction={
               <IconButton
                 onClick={() => {
-                  if (!currentUser) {
+                  if (!user?.sub) {
                     return
                   }
                   deleteEntry.mutate({
-                    account_id: currentUser.id,
+                    account_id: user.sub,
                     id: entry.id,
                   })
                 }}

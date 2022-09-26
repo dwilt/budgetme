@@ -1,19 +1,19 @@
-import { ButtonBase, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import Image from 'next/image'
 import { useFindEntries } from '../hooks/useFindEntries'
-import { useGetCurrentUser } from '../hooks/useGetCurrentUser'
 import { useRouter } from 'next/router'
-import { useLogout } from '../hooks/useLogout'
+import Link from 'next/link'
+import { useUser } from '@auth0/nextjs-auth0'
 
 export const Header = () => {
-  const { push, query } = useRouter()
+  const { query } = useRouter()
   const queryDateString =
     typeof query.date === 'string' ? query.date : undefined
   const queryDate = queryDateString
     ? new Date(queryDateString.replaceAll('+', ' '))
     : undefined
 
-  const { data: currentUser } = useGetCurrentUser()
+  const { user } = useUser()
 
   const transaction_date_start = queryDate
     ? new Date(queryDate.getFullYear(), queryDate.getMonth(), 1).toDateString()
@@ -29,25 +29,25 @@ export const Header = () => {
 
   const { data: monthlyExpenses } = useFindEntries(
     {
-      account_id: currentUser?.id,
+      account_id: user?.sub,
       transaction_date_end,
       transaction_date_start,
       recurring: false,
       type: 'expense',
     },
     {
-      enabled: !!(currentUser?.id && queryDate),
+      enabled: !!(user?.sub && queryDate),
     }
   )
 
   const { data: recurringEntries } = useFindEntries(
     {
-      account_id: currentUser?.id,
+      account_id: user?.sub,
       recurring: true,
       type: 'expense',
     },
     {
-      enabled: !!(currentUser?.id && queryDate),
+      enabled: !!(user?.sub && queryDate),
     }
   )
 
@@ -59,24 +59,12 @@ export const Header = () => {
         ) / 100
       : 0
 
-  const logout = useLogout()
-
   return (
     <header>
-      {currentUser && (
-        <ButtonBase
-          onClick={async () => {
-            await logout.mutate()
-            push('/login')
-          }}
-        >
-          <Image
-            alt={`${currentUser.first_name} ${currentUser.last_name}`}
-            src={currentUser.avatar}
-            width={40}
-            height={40}
-          />
-        </ButtonBase>
+      {!!user?.name && !!user?.picture && (
+        <Link href="/api/auth/logout">
+          <Image alt={user.name} src={user.picture} width={40} height={40} />
+        </Link>
       )}
       <Typography component="h1">
         Monthly total:{' '}
