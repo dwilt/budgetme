@@ -10,7 +10,7 @@ import { DailyEntries } from '../src/components/DailyEntries'
 import { Header } from '../src/components/Header'
 import { withPageAuthRequired } from '@auth0/nextjs-auth0'
 
-const Home: NextPage = () => {
+const Home: NextPage = withPageAuthRequired(() => {
   const { push, query } = useRouter()
   const queryDateString =
     typeof query.date === 'string' ? query.date : undefined
@@ -57,10 +57,6 @@ const Home: NextPage = () => {
       </main>
     </div>
   )
-}
-
-export const getServerSideProps = withPageAuthRequired({
-  returnTo: '/login',
 })
 
 export default Home
