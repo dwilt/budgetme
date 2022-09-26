@@ -8,22 +8,20 @@ import { useEffect } from 'react'
 import { EntryForm } from '../src/components/EntryForm'
 import { DailyEntries } from '../src/components/DailyEntries'
 import { Header } from '../src/components/Header'
-import { addErrorEventListener } from '../src/api/utils'
+import { useUser } from '@auth0/nextjs-auth0'
 
 const Home: NextPage = () => {
   const { push, query } = useRouter()
   const queryDateString =
     typeof query.date === 'string' ? query.date : undefined
 
-  useEffect(() => {
-    const unsubscribe = addErrorEventListener((error) => {
-      if (error.status === 401) {
-        push('/login')
-      }
-    })
+  const { error, isLoading, user } = useUser()
 
-    return () => unsubscribe()
-  }, [push])
+  useEffect(() => {
+    if (!error && !isLoading && !user) {
+      push('/login')
+    }
+  }, [error, isLoading, push, user])
 
   useEffect(() => {
     if (!queryDateString) {
