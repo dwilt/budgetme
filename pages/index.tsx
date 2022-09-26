@@ -2,13 +2,13 @@ import { TextField } from '@mui/material'
 import { DesktopDatePicker } from '@mui/x-date-pickers'
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import styles from '../src/styles/Home.module.css'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import { addErrorEventListener } from '../api/utils'
-import { EntryForm } from '../components/EntryForm'
-import { DailyEntries } from '../components/DailyEntries'
-import { Header } from '../components/Header'
+import { EntryForm } from '../src/components/EntryForm'
+import { DailyEntries } from '../src/components/DailyEntries'
+import { Header } from '../src/components/Header'
+import { addErrorEventListener } from '../src/api/utils'
 
 const Home: NextPage = () => {
   const { push, query } = useRouter()
