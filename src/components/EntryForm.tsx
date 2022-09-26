@@ -12,17 +12,14 @@ import { Controller, useForm } from 'react-hook-form'
 import { Entry } from '../api/entry/types'
 import { useCreateEntry } from '../hooks/useCreateEntry'
 import { AttachMoney } from '@mui/icons-material'
-import { useUser } from '@auth0/nextjs-auth0'
 import { useGetDateFromQuery } from '../hooks/useGetDateFromQuery'
 
 export const EntryForm = () => {
   const { queryDate } = useGetDateFromQuery()
-
   const { register, handleSubmit, reset, control } =
     useForm<Omit<Entry, 'id'>>()
-  const { user } = useUser()
 
-  const createEntry = useCreateEntry({
+  const { createEntry } = useCreateEntry({
     onSettled: () => {
       reset()
     },
@@ -31,14 +28,13 @@ export const EntryForm = () => {
   return (
     <form
       onSubmit={handleSubmit(({ name, amount, recurring, type }) => {
-        if (!user?.sub || !queryDate) {
+        if (!queryDate) {
           return
         }
 
-        createEntry.mutate({
+        createEntry({
           name,
           amount,
-          account_id: user.sub,
           transaction_date: queryDate.toISOString(),
           recurring,
           type,

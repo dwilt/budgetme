@@ -1,12 +1,10 @@
 import { Entry } from '../api/entry/types'
+import { getEntriesTotal } from '../utils/entries'
 import { useMonthlyEntries } from './useMonthlyEntries'
 
 export const useMonthlyEntriesTotal = (date?: Date, type?: Entry['type']) => {
   const { data: monthlyEntries } = useMonthlyEntries(date, { type })
-
-  const monthlyEntriesTotal = monthlyEntries
-    ? monthlyEntries.reduce((acc, { amount }) => acc + amount, 0) / 100
-    : undefined
+  const monthlyEntriesTotal = getEntriesTotal(monthlyEntries)
 
   return { monthlyEntriesTotal }
 }
