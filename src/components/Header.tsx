@@ -1,14 +1,9 @@
-import { Typography } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useUser } from '@auth0/nextjs-auth0'
-import { useMonthlyExpensesTotal } from '../hooks/useMonthlyExpensesTotal'
-import { useGetDateFromQuery } from '../hooks/useGetDateFromQuery'
 
 export const Header = () => {
-  const { queryDate } = useGetDateFromQuery()
   const { user } = useUser()
-  const { monthlyExpensesTotal } = useMonthlyExpensesTotal(queryDate)
 
   return (
     <header>
@@ -19,14 +14,6 @@ export const Header = () => {
           </a>
         </Link>
       )}
-      <Typography component="h1">
-        Monthly total:{' '}
-        {new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2,
-        }).format(monthlyExpensesTotal || 0)}
-      </Typography>
     </header>
   )
 }

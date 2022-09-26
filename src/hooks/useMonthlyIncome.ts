@@ -1,7 +1,7 @@
 import { useMonthlyEntries } from './useMonthlyEntries'
 
-export const useMonthlyExpenses = (date?: Date) => {
+export const useMonthlyIncome = (date?: Date) => {
   return useMonthlyEntries(date, {
-    type: 'expense',
+    type: 'income',
   })
 }
