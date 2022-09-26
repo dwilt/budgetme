@@ -7,7 +7,7 @@ const LoginPage: NextPage = () => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>BudgetMe</title>
+        <title>Login to BudgetMe</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
