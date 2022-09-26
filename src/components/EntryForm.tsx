@@ -12,13 +12,11 @@ import { Controller, useForm } from 'react-hook-form'
 import { Entry } from '../api/entry/types'
 import { useCreateEntry } from '../hooks/useCreateEntry'
 import { AttachMoney } from '@mui/icons-material'
-import { useRouter } from 'next/router'
 import { useUser } from '@auth0/nextjs-auth0'
+import { useGetDateFromQuery } from '../hooks/useGetDateFromQuery'
 
 export const EntryForm = () => {
-  const { query } = useRouter()
-  const queryDateString =
-    typeof query.date === 'string' ? query.date : undefined
+  const { queryDate } = useGetDateFromQuery()
 
   const { register, handleSubmit, reset, control } =
     useForm<Omit<Entry, 'id'>>()
@@ -33,7 +31,7 @@ export const EntryForm = () => {
   return (
     <form
       onSubmit={handleSubmit(({ name, amount, recurring, type }) => {
-        if (!user?.sub || !queryDateString) {
+        if (!user?.sub || !queryDate) {
           return
         }
 
@@ -41,7 +39,7 @@ export const EntryForm = () => {
           name,
           amount,
           account_id: user.sub,
-          transaction_date: new Date(queryDateString).toISOString(),
+          transaction_date: queryDate.toISOString(),
           recurring,
           type,
         })

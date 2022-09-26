@@ -6,37 +6,19 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material'
-import { useFindEntries } from '../hooks/useFindEntries'
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'
 import { useDeleteEntry } from '../hooks/useDeleteEntry'
-import { useRouter } from 'next/router'
 import { useUser } from '@auth0/nextjs-auth0'
+import { useDailyExpenses } from '../hooks/useDailyExpenses'
+import { useDailyExpensesTotal } from '../hooks/useDailyExpensesTotal'
+import { useGetDateFromQuery } from '../hooks/useGetDateFromQuery'
 
 export const DailyEntries = () => {
-  const { query } = useRouter()
-  const queryDateString =
-    typeof query.date === 'string' ? query.date : undefined
-
   const { user } = useUser()
-  const { data: dailyEntries } = useFindEntries(
-    {
-      account_id: user?.sub,
-      transaction_date: queryDateString,
-    },
-    {
-      enabled: !!(user?.sub && queryDateString),
-    }
-  )
-
+  const { queryDate } = useGetDateFromQuery()
+  const { data: dailyExpenses } = useDailyExpenses(queryDate)
   const deleteEntry = useDeleteEntry()
-
-  const dailyEntriesTotal = dailyEntries
-    ? dailyEntries.reduce((acc, { amount }) => acc + amount, 0) / 100
-    : 0
-
-  if (!dailyEntries) {
-    return null
-  }
+  const { dailyEntriesTotal } = useDailyExpensesTotal(queryDate)
 
   return (
     <div>
@@ -46,10 +28,10 @@ export const DailyEntries = () => {
           style: 'currency',
           currency: 'USD',
           minimumFractionDigits: 2,
-        }).format(dailyEntriesTotal)}
+        }).format(dailyEntriesTotal || 0)}
       </Typography>
       <List>
-        {dailyEntries.map((entry) => (
+        {dailyExpenses?.map((entry) => (
           <ListItem
             key={entry.id}
             secondaryAction={
