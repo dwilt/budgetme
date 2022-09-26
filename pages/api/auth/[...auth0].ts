@@ -11,7 +11,10 @@ export default handleAuth({
         },
       })
     } catch (error) {
-      // handle error
+      res.status(500).send({
+        error:
+          error instanceof Error ? error.message : 'There was an error lol',
+      })
     }
   },
 })
