@@ -9,21 +9,22 @@ import { EntryForm } from '../src/components/EntryForm'
 import { DailyEntries } from '../src/components/DailyEntries'
 import { Header } from '../src/components/Header'
 import { withPageAuthRequired } from '@auth0/nextjs-auth0'
+import { useGetDateFromQuery } from '../src/hooks/useGetDateFromQuery'
+import { MonthlyOverview } from '../src/components/MonthlyOverview'
 
 const Home: NextPage = withPageAuthRequired(() => {
-  const { push, query } = useRouter()
-  const queryDateString =
-    typeof query.date === 'string' ? query.date : undefined
+  const { push } = useRouter()
+  const { queryDate } = useGetDateFromQuery()
 
   useEffect(() => {
-    if (!queryDateString) {
+    if (!queryDate) {
       push({
         query: {
           date: new Date().toDateString(),
         },
       })
     }
-  }, [push, queryDateString])
+  }, [push, queryDate])
 
   return (
     <div className={styles.container}>
@@ -35,11 +36,11 @@ const Home: NextPage = withPageAuthRequired(() => {
 
       <main className={styles.main}>
         <Header />
-        {!!queryDateString && (
+        {!!queryDate && (
           <DesktopDatePicker
             label="Date"
             inputFormat="MM/dd/yyyy"
-            value={new Date(queryDateString)}
+            value={queryDate}
             onChange={(selectedDate) => {
               if (selectedDate) {
                 push({
@@ -53,6 +54,7 @@ const Home: NextPage = withPageAuthRequired(() => {
           />
         )}
         <DailyEntries />
+        <MonthlyOverview />
         <EntryForm />
       </main>
     </div>
