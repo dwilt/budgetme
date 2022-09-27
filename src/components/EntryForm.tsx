@@ -58,12 +58,6 @@ export const EntryForm = () => {
         />
       </FormControl>
       <FormControl fullWidth sx={{ mb: 4 }}>
-        <FormControlLabel
-          control={<Checkbox {...register('recurring')} />}
-          label="Recurring?"
-        />
-      </FormControl>
-      <FormControl fullWidth sx={{ mb: 4 }}>
         <InputLabel id="entry-type-label">Entry type</InputLabel>
         <Controller
           name="type"
