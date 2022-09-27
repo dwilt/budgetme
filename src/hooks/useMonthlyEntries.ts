@@ -23,7 +23,7 @@ export const useMonthlyEntries = (
       ...options,
     },
     {
-      enabled: !!user?.sub,
+      enabled: !!(user?.sub && date),
     }
   )
 }
