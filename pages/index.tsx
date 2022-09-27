@@ -12,7 +12,7 @@ import { withPageAuthRequired } from '@auth0/nextjs-auth0'
 import { useGetDateFromQuery } from '../src/hooks/useGetDateFromQuery'
 import { MonthlyOverview } from '../src/components/MonthlyOverview'
 
-const Home: NextPage = withPageAuthRequired(() => {
+const Home: NextPage = () => {
   const { push } = useRouter()
   const { queryDate } = useGetDateFromQuery()
 
@@ -60,6 +60,8 @@ const Home: NextPage = withPageAuthRequired(() => {
       </main>
     </div>
   )
-})
+}
+
+export const getServerSideProps = withPageAuthRequired()
 
 export default Home
