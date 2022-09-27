@@ -20,7 +20,6 @@ export const useMonthlyEntries = (
       account_id: user?.sub,
       transaction_date_end,
       transaction_date_start,
-      recurring: false,
       ...options,
     },
     {

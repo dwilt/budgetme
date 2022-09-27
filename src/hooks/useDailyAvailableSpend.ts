@@ -1,3 +1,4 @@
+import { isNumber } from '../utils/lang'
 import { useMonthlyExpensesTotal } from './useMonthlyExpensesTotal'
 import { useMonthlyIncomeTotal } from './useMonthlyIncomeTotal'
 import { useMonthlySavingsTotal } from './useMonthlySavingsTotal'
@@ -7,12 +8,14 @@ export const useDailyAvailableSpendForMonth = (date?: Date) => {
   const { monthlySavingsTotal } = useMonthlySavingsTotal(date)
   const { monthlyIncomeTotal } = useMonthlyIncomeTotal(date)
   const moneyLeftInMonth =
-    monthlyIncomeTotal && monthlySavingsTotal && monthlyExpensesTotal
+    isNumber(monthlyIncomeTotal) &&
+    isNumber(monthlySavingsTotal) &&
+    isNumber(monthlyExpensesTotal)
       ? monthlyIncomeTotal - monthlySavingsTotal - monthlyExpensesTotal
       : undefined
 
   const lastDayOfMonth = date
-    ? new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+    ? new Date(date.getFullYear(), date.getMonth(), 0).getDate()
     : undefined
   const daysUntilEndOfMonth =
     lastDayOfMonth && date ? lastDayOfMonth - date.getDate() : undefined

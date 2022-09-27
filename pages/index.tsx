@@ -53,8 +53,9 @@ const Home: NextPage = withPageAuthRequired(() => {
             renderInput={(params) => <TextField {...params} />}
           />
         )}
-        <DailyEntries />
         <MonthlyOverview />
+        <hr />
+        <DailyEntries />
         <EntryForm />
       </main>
     </div>
