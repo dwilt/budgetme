@@ -9,7 +9,7 @@ import {
 import { Controller, useForm } from 'react-hook-form'
 import { Entry } from '../api/entry/types'
 import { useCreateEntry } from '../hooks/useCreateEntry'
-import { AttachMoney } from '@mui/icons-material'
+import AttachMoney from '@mui/icons-material/AttachMoney'
 import { useGetDateFromQuery } from '../hooks/useGetDateFromQuery'
 
 export const EntryForm = () => {

@@ -6,7 +6,8 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material'
-import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { Entry } from '../api/entry/types'
 
 export const EntriesList = ({
