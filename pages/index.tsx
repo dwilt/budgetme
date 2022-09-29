@@ -1,5 +1,5 @@
-import TextField from '@mui/material/TextField'
-import DesktopDatePicker from '@mui/x-date-pickers/DesktopDatePicker'
+import { TextField } from '@mui/material'
+import { DesktopDatePicker } from '@mui/x-date-pickers'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import styles from '../src/styles/Home.module.css'

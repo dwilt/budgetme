@@ -1,9 +1,11 @@
-import Button from '@mui/material/Button'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import TextField from '@mui/material/TextField'
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { Entry } from '../api/entry/types'
 import { useCreateEntry } from '../hooks/useCreateEntry'
