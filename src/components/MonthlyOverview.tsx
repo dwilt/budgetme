@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material'
+import Typography from '@mui/material/Typography'
 import { useMemo } from 'react'
 import { useDailyAvailableSpendForMonth } from '../hooks/useDailyAvailableSpend'
 import { useGetDateFromQuery } from '../hooks/useGetDateFromQuery'

@@ -1,4 +1,4 @@
-import { CssBaseline } from '@mui/material'
+import CssBaseline from '@mui/material/CssBaseline'
 import { Html, Head, Main, NextScript } from 'next/document'
 
 export default function Document() {
